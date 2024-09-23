@@ -22,8 +22,14 @@ class ExcelController extends Controller
     // Gabungkan LG2 + 3 huruf dari kolom C + kolom E
     $materialNumber = 'LG2' . $prefixC . $cleanedE;
 
+    // Jika panjang kombinasi lebih dari 18 karakter
+    if (strlen($materialNumber) > 18) {
+        // Kurangi karakter dari awal kolom E hingga panjangnya menjadi 18
+        $excessLength = strlen($materialNumber) - 18;
+        $materialNumber = 'LG2' . $prefixC . substr($cleanedE, $excessLength);
+    }
     // Jika panjang kombinasi kurang dari 18 karakter, tambahkan '0' setelah LG2 dan prefixC
-    if (strlen($materialNumber) < 18) {
+    elseif (strlen($materialNumber) < 18) {
         // Hitung jumlah karakter yang perlu ditambahkan agar panjangnya menjadi 18
         $remainingLength = 18 - strlen($materialNumber);
 
@@ -34,6 +40,7 @@ class ExcelController extends Controller
     // Pastikan panjang tetap 18 karakter
     return substr($materialNumber, 0, 18);
 }
+
 
 
 
