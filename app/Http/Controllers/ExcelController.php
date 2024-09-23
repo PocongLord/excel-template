@@ -10,6 +10,33 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ExcelController extends Controller
 {
+
+    private function generateMaterialNumber($cellC, $cellE)
+{
+    // Ambil 3 huruf pertama dari kolom C (Manufaktur)
+    $prefixC = substr(strtoupper($cellC), 0, 3);
+
+    // Bersihkan simbol dari kolom E dan ubah menjadi kapital
+    $cleanedE = preg_replace('/[^A-Za-z0-9]/', '', strtoupper($cellE));
+
+    // Gabungkan LG2 + 3 huruf dari kolom C + kolom E
+    $materialNumber = 'LG2' . $prefixC . $cleanedE;
+
+    // Jika panjang kombinasi kurang dari 18 karakter, tambahkan '0' setelah LG2 dan prefixC
+    if (strlen($materialNumber) < 18) {
+        // Hitung jumlah karakter yang perlu ditambahkan agar panjangnya menjadi 18
+        $remainingLength = 18 - strlen($materialNumber);
+
+        // Tambahkan '0' di antara "LG2" + 3 huruf kolom C dan cleanedE
+        $materialNumber = 'LG2' . $prefixC . str_pad($cleanedE, strlen($cleanedE) + $remainingLength, '0', STR_PAD_LEFT);
+    }
+
+    // Pastikan panjang tetap 18 karakter
+    return substr($materialNumber, 0, 18);
+}
+
+
+
     public function uploadForm()
     {
         return view('upload');
@@ -25,40 +52,44 @@ class ExcelController extends Controller
     $spreadsheet = IOFactory::load($file->getRealPath());
     $sheet = $spreadsheet->getActiveSheet();
 
-    // Mengubah kolom sesuai dengan logika yang diberikan
-    foreach ($sheet->getRowIterator(2) as $row) { // mulai dari baris kedua
-        $cellC = strtoupper($sheet->getCell('C'.$row->getRowIndex())->getValue()); // Manufaktur
-        $cellE = strtoupper($sheet->getCell('E'.$row->getRowIndex())->getValue()); // Old Material Number
+    foreach ($sheet->getRowIterator(2) as $row) {
+        $rowIndex = $row->getRowIndex();
+        
+        // Ambil nilai dari kolom yang ada di file asli
+        $cellC = $sheet->getCell('C'.$rowIndex)->getValue(); // Manufaktur
+        $cellE = $sheet->getCell('E'.$rowIndex)->getValue(); // Old Material Number
+        $cellF = $sheet->getCell('F'.$rowIndex)->getValue(); // Material Description
+        $cellG = $sheet->getCell('G'.$rowIndex)->getValue(); // Material Group
+        $cellH = $sheet->getCell('H'.$rowIndex)->getValue(); // External Material Group
+        $cellI = $sheet->getCell('I'.$rowIndex)->getValue(); // Material Type
+        $cellJ = $sheet->getCell('J'.$rowIndex)->getValue(); // UOM
 
-        // Ambil 3 huruf pertama dari kolom C (Manufaktur)
-        $prefixC = substr($cellC, 0, 3);
+        // Panggil fungsi generateMaterialNumber
+        $materialNumber = $this->generateMaterialNumber($cellC, $cellE);
 
-        // Bersihkan simbol dari kolom E dan ubah menjadi kapital
-        $cleanedE = preg_replace('/[^A-Za-z0-9]/', '', $cellE);
-
-        // Gabungkan LG + 3 huruf dari kolom C + kolom E (yang sudah dibersihkan dan diubah kapital)
-        $materialNumber = 'LG' . $prefixC . $cleanedE;
-
-        // Jika panjang kombinasi kurang dari 18 karakter, tambahkan '0' setelah 3 huruf dari kolom C
-        if (strlen($materialNumber) < 18) {
-            $materialNumber = substr($materialNumber, 0, 5) . str_pad(substr($materialNumber, 5), 13, '0', STR_PAD_LEFT);
-        }
-
-        // Ubah material number menjadi kapital dan set nilai di kolom D
-        $sheet->setCellValue('D'.$row->getRowIndex(), strtoupper($materialNumber));
+        // Set nilai di kolom D (Material Number)
+        $sheet->setCellValue('D'.$rowIndex, $materialNumber);
 
         // Set nilai di kolom E (Length of Material Number)
-        $sheet->setCellValue('E'.$row->getRowIndex(), strlen($materialNumber));
+        $sheet->setCellValue('E'.$rowIndex, strlen($materialNumber));
 
-        // Kolom F, G, H, I, J tetap dari data awal, tapi diubah jadi kapital
-        $sheet->setCellValue('F'.$row->getRowIndex(), strtoupper($sheet->getCell('F'.$row->getRowIndex())->getValue()));
-        $sheet->setCellValue('G'.$row->getRowIndex(), strtoupper($sheet->getCell('G'.$row->getRowIndex())->getValue()));
-        $sheet->setCellValue('H'.$row->getRowIndex(), strtoupper($sheet->getCell('H'.$row->getRowIndex())->getValue()));
-        $sheet->setCellValue('I'.$row->getRowIndex(), strtoupper($sheet->getCell('I'.$row->getRowIndex())->getValue()));
-        $sheet->setCellValue('J'.$row->getRowIndex(), strtoupper($sheet->getCell('J'.$row->getRowIndex())->getValue()));
+        // Set nilai di kolom F (Old Material Number)
+        $sheet->setCellValue('F'.$rowIndex, $cellE);
 
-        // Kolom K (Additional Data - Length of Material Number or Fixed Value)
-        $sheet->setCellValue('K'.$row->getRowIndex(), '0200');
+        // Set nilai di kolom G (Material Description)
+        $sheet->setCellValue('G'.$rowIndex, $cellF);
+
+        // Set nilai di kolom H (Material Group)
+        $sheet->setCellValue('H'.$rowIndex, $cellG);
+
+        // Set nilai di kolom I (External Material Group)
+        $sheet->setCellValue('I'.$rowIndex, $cellH);
+
+        // Set nilai di kolom J (Material Type)
+        $sheet->setCellValue('J'.$rowIndex, $cellI);
+
+        // Set nilai di kolom K (UOM)
+        $sheet->setCellValue('K'.$rowIndex, $cellJ);
     }
 
     // Simpan file sebagai Excel baru
@@ -68,6 +99,8 @@ class ExcelController extends Controller
 
     return response()->download(storage_path('app/' . $newFileName));
 }
+
+
 
 
 
