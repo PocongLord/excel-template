@@ -62,14 +62,14 @@ class ExcelController extends Controller
     foreach ($sheet->getRowIterator(2) as $row) {
         $rowIndex = $row->getRowIndex();
         
-        // Ambil nilai dari kolom yang ada di file asli
-        $cellC = $sheet->getCell('C'.$rowIndex)->getValue(); // Manufaktur
-        $cellE = $sheet->getCell('E'.$rowIndex)->getValue(); // Old Material Number
-        $cellF = $sheet->getCell('F'.$rowIndex)->getValue(); // Material Description
-        $cellG = $sheet->getCell('G'.$rowIndex)->getValue(); // Material Group
-        $cellH = $sheet->getCell('H'.$rowIndex)->getValue(); // External Material Group
-        $cellI = $sheet->getCell('I'.$rowIndex)->getValue(); // Material Type
-        $cellJ = $sheet->getCell('J'.$rowIndex)->getValue(); // UOM
+        // Ambil nilai dari kolom yang ada di file asli, dan ubah menjadi kapital
+        $cellC = strtoupper($sheet->getCell('C'.$rowIndex)->getValue()); // Manufaktur
+        $cellE = strtoupper($sheet->getCell('E'.$rowIndex)->getValue()); // Old Material Number
+        $cellF = strtoupper($sheet->getCell('F'.$rowIndex)->getValue()); // Material Description
+        $cellG = strtoupper($sheet->getCell('G'.$rowIndex)->getValue()); // Material Group
+        $cellH = strtoupper($sheet->getCell('H'.$rowIndex)->getValue()); // External Material Group
+        $cellI = strtoupper($sheet->getCell('I'.$rowIndex)->getValue()); // Material Type
+        $cellJ = strtoupper($sheet->getCell('J'.$rowIndex)->getValue()); // UOM
 
         // Panggil fungsi generateMaterialNumber
         $materialNumber = $this->generateMaterialNumber($cellC, $cellE);
@@ -106,6 +106,8 @@ class ExcelController extends Controller
 
     return response()->download(storage_path('app/' . $newFileName));
 }
+
+
 
 
 
