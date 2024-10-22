@@ -37,9 +37,10 @@ class ExcelController extends Controller
         $materialNumber = 'LG2' . $prefixC . str_pad($cleanedE, strlen($cleanedE) + $remainingLength, '0', STR_PAD_LEFT);
     }
 
-    // Pastikan panjang tetap 18 karakter
-    return substr($materialNumber, 0, 18);
+    // Pastikan panjang tetap 18 karakter dan kembalikan dalam huruf kapital
+    return strtoupper(substr($materialNumber, 0, 18));
 }
+
 
 
 
@@ -62,7 +63,7 @@ class ExcelController extends Controller
     foreach ($sheet->getRowIterator(2) as $row) {
         $rowIndex = $row->getRowIndex();
         
-        // Ambil nilai dari kolom yang ada di file asli, dan ubah menjadi kapital
+        // Ambil nilai dari kolom yang ada di file asli dan ubah menjadi kapital
         $cellC = strtoupper($sheet->getCell('C'.$rowIndex)->getValue()); // Manufaktur
         $cellE = strtoupper($sheet->getCell('E'.$rowIndex)->getValue()); // Old Material Number
         $cellF = strtoupper($sheet->getCell('F'.$rowIndex)->getValue()); // Material Description
@@ -71,11 +72,17 @@ class ExcelController extends Controller
         $cellI = strtoupper($sheet->getCell('I'.$rowIndex)->getValue()); // Material Type
         $cellJ = strtoupper($sheet->getCell('J'.$rowIndex)->getValue()); // UOM
 
+        // Validasi jika kolom C (Manufaktur) atau kolom E (Old Material Number) kosong
+        if (empty($cellC) || empty($cellE)) {
+            // Jika kosong, lewati baris ini dan lanjutkan ke baris berikutnya
+            continue;
+        }
+
         // Panggil fungsi generateMaterialNumber
         $materialNumber = $this->generateMaterialNumber($cellC, $cellE);
 
-        // Set nilai di kolom D (Material Number)
-        $sheet->setCellValue('D'.$rowIndex, $materialNumber);
+        // Set nilai di kolom D (Material Number) menjadi kapital
+        $sheet->setCellValue('D'.$rowIndex, strtoupper($materialNumber));
 
         // Set nilai di kolom E (Length of Material Number)
         $sheet->setCellValue('E'.$rowIndex, strlen($materialNumber));
@@ -106,6 +113,8 @@ class ExcelController extends Controller
 
     return response()->download(storage_path('app/' . $newFileName));
 }
+
+
 
 
 
