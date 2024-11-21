@@ -13,13 +13,20 @@ class ExcelController extends Controller
 
     private function generateMaterialNumber($cellC, $cellE)
 {
-    // Ambil 3 huruf pertama dari kolom C (Manufaktur)
-    $prefixC = substr(strtoupper($cellC), 0, 3);
+    // Pengecekan kata khusus pada kolom manufaktur
+    if (stripos($cellC, 'Atlas Copco') !== false) {
+        $prefixC = 'ACP'; // Gunakan "ACP" sebagai prefix
+    } elseif (stripos($cellC, 'Multi Flow') !== false || stripos($cellC, 'Multiflow') !== false) {
+        $prefixC = 'MLF'; // Gunakan "MLF" sebagai prefix
+    } else {
+        // Ambil 3 huruf pertama dari kolom C (Manufaktur)
+        $prefixC = substr(strtoupper($cellC), 0, 3);
+    }
 
     // Bersihkan simbol dari kolom E dan ubah menjadi kapital
     $cleanedE = preg_replace('/[^A-Za-z0-9]/', '', strtoupper($cellE));
 
-    // Gabungkan LG2 + 3 huruf dari kolom C + kolom E
+    // Gabungkan LG2 + prefixC + kolom E
     $materialNumber = 'LG2' . $prefixC . $cleanedE;
 
     // Jika panjang kombinasi lebih dari 18 karakter
@@ -33,15 +40,13 @@ class ExcelController extends Controller
         // Hitung jumlah karakter yang perlu ditambahkan agar panjangnya menjadi 18
         $remainingLength = 18 - strlen($materialNumber);
 
-        // Tambahkan '0' di antara "LG2" + 3 huruf kolom C dan cleanedE
+        // Tambahkan '0' di antara "LG2" + prefixC dan cleanedE
         $materialNumber = 'LG2' . $prefixC . str_pad($cleanedE, strlen($cleanedE) + $remainingLength, '0', STR_PAD_LEFT);
     }
 
     // Pastikan panjang tetap 18 karakter dan kembalikan dalam huruf kapital
     return strtoupper(substr($materialNumber, 0, 18));
 }
-
-
 
 
 
