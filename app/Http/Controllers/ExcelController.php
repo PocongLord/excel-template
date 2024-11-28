@@ -18,6 +18,8 @@ class ExcelController extends Controller
         $prefixC = 'ACP'; // Gunakan "ACP" sebagai prefix
     } elseif (stripos($cellC, 'Multi Flow') !== false || stripos($cellC, 'Multiflow') !== false) {
         $prefixC = 'MLF'; // Gunakan "MLF" sebagai prefix
+    } elseif (stripos($cellC, 'Manitau') !== false) {
+        $prefixC = 'MAT'; // Gunakan "MAT" sebagai prefix untuk Manitau
     } else {
         // Ambil 3 huruf pertama dari kolom C (Manufaktur)
         $prefixC = substr(strtoupper($cellC), 0, 3);
@@ -47,6 +49,7 @@ class ExcelController extends Controller
     // Pastikan panjang tetap 18 karakter dan kembalikan dalam huruf kapital
     return strtoupper(substr($materialNumber, 0, 18));
 }
+
 
 
 
